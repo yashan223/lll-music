@@ -1,17 +1,34 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, Music2, Upload, ListMusic, Heart, Clock, LogOut, LogIn } from 'lucide-react';
+import { Menu, X, Music2, Upload, ListMusic, Heart, Clock, LogOut, LogIn, Download } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
+import usePwaInstall from '../hooks/usePwaInstall';
 
 export default function MobileSidebar() {
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { isStandalone, promptInstall } = usePwaInstall();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     navigate('/');
+    setOpen(false);
+  };
+
+  const handleInstallClick = async () => {
+    const result = await promptInstall();
+
+    if (result.status === 'ios') {
+      window.alert('On iPhone: tap Share in Safari, then tap Add to Home Screen.');
+      return;
+    }
+
+    if (result.status === 'unavailable') {
+      window.alert('Install is not available yet in this browser session. Try opening in Safari or Chrome.');
+    }
+
     setOpen(false);
   };
 
@@ -88,6 +105,17 @@ export default function MobileSidebar() {
               {label}
             </NavLink>
           ))}
+
+          {!isStandalone && (
+            <button
+              type="button"
+              onClick={handleInstallClick}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-purple-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
+            >
+              <Download size={18} className="group-hover:text-purple-400 transition-colors" />
+              <span>Add to Home</span>
+            </button>
+          )}
         </nav>
 
         <div className="p-4 border-t border-[hsl(var(--border))]">

@@ -12,6 +12,7 @@ import {
   Heart,
   Loader2,
   Music,
+  RotateCcw,
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,6 +30,8 @@ export default function Player() {
     isLoading,
     repeat,
     shuffle,
+    canResume,
+    resumePlayback,
     togglePlay,
     seek,
     setVolume,
@@ -182,6 +185,17 @@ export default function Player() {
               <Play size={18} className="text-white translate-x-[1px]" fill="white" />
             )}
           </button>
+
+          {canResume && (
+            <button
+              onClick={resumePlayback}
+              title={`Resume from ${formatDuration(currentTime)}`}
+              className="flex items-center gap-1 text-purple-300 hover:text-purple-200 transition-colors flex-shrink-0"
+            >
+              <RotateCcw size={16} />
+              <span className="hidden md:inline text-xs font-medium">Resume</span>
+            </button>
+          )}
 
           {/* Next */}
           <button

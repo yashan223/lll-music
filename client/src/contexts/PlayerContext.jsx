@@ -9,6 +9,7 @@ import {
 import { musicAPI } from '../lib/api';
 
 const PlayerContext = createContext(null);
+const PLAYER_STATE_KEY = 'lll_player_state';
 
 export function PlayerProvider({ children }) {
   const audioRef = useRef(new Audio());
@@ -16,6 +17,9 @@ export function PlayerProvider({ children }) {
   const queueIndexRef = useRef(0);
   const currentSongRef = useRef(null);
   const handlingFailureRef = useRef(false);
+  const pendingSeekTimeRef = useRef(null);
+  const hasHydratedPlaybackRef = useRef(false);
+  const lastPersistedSecondRef = useRef(-1);
   const [currentSong, setCurrentSong] = useState(null);
   const [queue, setQueue] = useState([]);
   const [queueIndex, setQueueIndex] = useState(0);
@@ -69,6 +73,76 @@ export function PlayerProvider({ children }) {
     }
   }, []);
 
+  const applyPendingSeek = useCallback(() => {
+    const pendingTime = pendingSeekTimeRef.current;
+    if (pendingTime == null) return;
+
+    const safeDuration = Number.isFinite(audio.duration) ? audio.duration : 0;
+    const maxTime = safeDuration > 0 ? Math.max(safeDuration - 0.25, 0) : pendingTime;
+    const nextTime = Math.min(Math.max(0, pendingTime), maxTime);
+
+    audio.currentTime = nextTime;
+    setCurrentTime(nextTime);
+    pendingSeekTimeRef.current = null;
+  }, [audio]);
+
+  useEffect(() => {
+    if (hasHydratedPlaybackRef.current) return;
+    hasHydratedPlaybackRef.current = true;
+
+    try {
+      const stored = localStorage.getItem(PLAYER_STATE_KEY);
+      if (!stored) return;
+
+      const parsed = JSON.parse(stored);
+      const storedSong = parsed?.song;
+      if (!storedSong?.id) return;
+
+      const storedTime = Math.max(0, Number(parsed.currentTime) || 0);
+
+      setQueue([storedSong]);
+      setQueueIndex(0);
+      setCurrentSong(storedSong);
+      setCurrentTime(storedTime);
+
+      pendingSeekTimeRef.current = storedTime;
+      audio.src = resolveStreamUrl(storedSong);
+      audio.load();
+    } catch {
+      // Ignore invalid stored playback data.
+    }
+  }, [audio, resolveStreamUrl]);
+
+  useEffect(() => {
+    if (!currentSong) {
+      lastPersistedSecondRef.current = -1;
+      localStorage.removeItem(PLAYER_STATE_KEY);
+      return;
+    }
+
+    const safeCurrentTime = Number.isFinite(currentTime) ? currentTime : 0;
+    const second = Math.floor(safeCurrentTime);
+    const shouldPersist = !isPlaying || second !== lastPersistedSecondRef.current || second === 0;
+
+    if (!shouldPersist) return;
+
+    lastPersistedSecondRef.current = second;
+
+    try {
+      localStorage.setItem(
+        PLAYER_STATE_KEY,
+        JSON.stringify({
+          song: currentSong,
+          currentTime: safeCurrentTime,
+          wasPlaying: isPlaying,
+          savedAt: Date.now(),
+        })
+      );
+    } catch {
+      // Ignore localStorage write failures.
+    }
+  }, [currentSong, currentTime, isPlaying]);
+
   const removeSongFromQueue = useCallback((songId) => {
     const previousQueue = queueRef.current;
     const removedIndex = previousQueue.findIndex((song) => song.id === songId);
@@ -112,6 +186,7 @@ export function PlayerProvider({ children }) {
       audio.pause();
       audio.removeAttribute('src');
       audio.load();
+      pendingSeekTimeRef.current = null;
 
       setIsPlaying(false);
       setIsLoading(false);
@@ -144,8 +219,11 @@ export function PlayerProvider({ children }) {
       );
 
       if (nextSong) {
+        pendingSeekTimeRef.current = null;
         audio.src = resolveStreamUrl(nextSong);
         audio.load();
+        setCurrentTime(0);
+        setDuration(0);
         audio.play().catch((err) => {
           console.error('Playback error:', err);
         });
@@ -160,6 +238,10 @@ export function PlayerProvider({ children }) {
   useEffect(() => {
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleDurationChange = () => setDuration(audio.duration || 0);
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration || 0);
+      applyPendingSeek();
+    };
     const handleEnded = () => {
       if (repeat === 'one') {
         audio.currentTime = 0;
@@ -169,7 +251,10 @@ export function PlayerProvider({ children }) {
       }
     };
     const handleLoadStart = () => setIsLoading(true);
-    const handleCanPlay = () => setIsLoading(false);
+    const handleCanPlay = () => {
+      setIsLoading(false);
+      applyPendingSeek();
+    };
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
     const handleError = () => {
@@ -178,6 +263,7 @@ export function PlayerProvider({ children }) {
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('durationchange', handleDurationChange);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('loadstart', handleLoadStart);
     audio.addEventListener('canplay', handleCanPlay);
@@ -188,6 +274,7 @@ export function PlayerProvider({ children }) {
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('durationchange', handleDurationChange);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('loadstart', handleLoadStart);
       audio.removeEventListener('canplay', handleCanPlay);
@@ -195,7 +282,7 @@ export function PlayerProvider({ children }) {
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('error', handleError);
     };
-  }, [repeat, queue, queueIndex, shuffle, handlePlaybackFailure]);
+  }, [repeat, queue, queueIndex, shuffle, handlePlaybackFailure, applyPendingSeek]);
 
   // ─── Volume sync ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -212,7 +299,10 @@ export function PlayerProvider({ children }) {
         setQueueIndex(idx >= 0 ? idx : 0);
       }
 
+      pendingSeekTimeRef.current = null;
       setCurrentSong(song);
+      setCurrentTime(0);
+      setDuration(0);
       audio.src = resolveStreamUrl(song);
       audio.load();
       audio
@@ -234,11 +324,18 @@ export function PlayerProvider({ children }) {
 
   const seek = useCallback(
     (time) => {
+      pendingSeekTimeRef.current = null;
       audio.currentTime = time;
       setCurrentTime(time);
     },
     [audio]
   );
+
+  const resumePlayback = useCallback(() => {
+    if (!currentSong) return;
+    applyPendingSeek();
+    audio.play().catch(console.error);
+  }, [audio, currentSong, applyPendingSeek]);
 
   const setVolume = useCallback(
     (val) => {
@@ -269,8 +366,11 @@ export function PlayerProvider({ children }) {
     }
 
     const nextSong = queue[nextIdx];
+    pendingSeekTimeRef.current = null;
     setQueueIndex(nextIdx);
     setCurrentSong(nextSong);
+    setCurrentTime(0);
+    setDuration(0);
     audio.src = resolveStreamUrl(nextSong);
     audio.load();
     audio.play().catch(console.error);
@@ -281,6 +381,7 @@ export function PlayerProvider({ children }) {
 
     // If more than 3 seconds in, restart current song
     if (audio.currentTime > 3) {
+      pendingSeekTimeRef.current = null;
       audio.currentTime = 0;
       return;
     }
@@ -289,8 +390,11 @@ export function PlayerProvider({ children }) {
     if (prevIdx < 0) prevIdx = repeat === 'all' ? queue.length - 1 : 0;
 
     const prevSong = queue[prevIdx];
+    pendingSeekTimeRef.current = null;
     setQueueIndex(prevIdx);
     setCurrentSong(prevSong);
+    setCurrentTime(0);
+    setDuration(0);
     audio.src = resolveStreamUrl(prevSong);
     audio.load();
     audio.play().catch(console.error);
@@ -305,6 +409,7 @@ export function PlayerProvider({ children }) {
   }, []);
 
   const toggleShuffle = useCallback(() => setShuffle((prev) => !prev), []);
+  const canResume = !!currentSong && !isPlaying && currentTime > 1;
 
   return (
     <PlayerContext.Provider
@@ -320,6 +425,8 @@ export function PlayerProvider({ children }) {
         repeat,
         shuffle,
         playSong,
+        canResume,
+        resumePlayback,
         togglePlay,
         seek,
         setVolume,

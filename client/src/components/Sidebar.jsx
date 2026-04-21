@@ -8,18 +8,34 @@ import {
   LogOut,
   User,
   ChevronRight,
-  LogIn
+  LogIn,
+  Download
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
+import usePwaInstall from '../hooks/usePwaInstall';
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const { isStandalone, promptInstall } = usePwaInstall();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleInstallClick = async () => {
+    const result = await promptInstall();
+
+    if (result.status === 'ios') {
+      window.alert('On iPhone: tap Share in Safari, then tap Add to Home Screen.');
+      return;
+    }
+
+    if (result.status === 'unavailable') {
+      window.alert('Install is not available yet in this browser session. Try opening in Safari or Chrome.');
+    }
   };
 
   // Base items visible to everyone
@@ -83,6 +99,17 @@ export default function Sidebar() {
 
       {/* Footer block */}
       <div className="p-3 border-t border-[hsl(var(--border))]">
+        {!isStandalone && (
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            className="mb-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-purple-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
+          >
+            <Download size={18} className="group-hover:text-purple-400 transition-colors" />
+            <span>Add to Home</span>
+          </button>
+        )}
+
         {user ? (
           <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[hsl(var(--accent))] transition-colors">
             <div className="w-8 h-8 rounded-full gradient-bg flex items-center justify-center flex-shrink-0">
