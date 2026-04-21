@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+    --card: 224 71% 6%;
+    --card-foreground: 213 31% 91%;
+    --popover: 224 71% 6%;
+    --popover-foreground: 213 31% 91%;
+    --primary: 263 70% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 47% 11%;
+    --secondary-foreground: 213 31% 91%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 216 34% 17%;
+    --accent-foreground: 213 31% 91%;
+    --destructive: 0 63% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 263 70% 65%;
+    --radius: 0.75rem;
+
+    /* Music player specific */
+    --player-bg: 224 71% 5%;
+    --sidebar-bg: 222 47% 7%;
+    --gradient-start: 263 70% 50%;
+    --gradient-end: 196 80% 50%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(263, 70%, 70%), hsl(196, 80%, 60%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, hsl(263, 70%, 40%), hsl(196, 80%, 35%));
+  }
+
+  .hover-scale {
+    transition: transform 0.2s ease;
+  }
+  .hover-scale:hover {
+    transform: scale(1.03);
+  }
+
+  .player-shadow {
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .card-hover {
+    transition: all 0.25s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  }
+}
