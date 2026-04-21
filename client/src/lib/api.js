@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_BASE = (import.meta.env.DEV
+const FIRST_PARTY_HOST_PATTERN = /(^|\.)xoxod33p\.me$/i;
+const isBrowser = typeof window !== 'undefined';
+const currentHost = isBrowser ? window.location.hostname : '';
+const useRelativeApiBase = import.meta.env.DEV || (isBrowser && !FIRST_PARTY_HOST_PATTERN.test(currentHost));
+
+const API_BASE = (useRelativeApiBase
   ? '/api'
   : (import.meta.env.VITE_API_BASE_URL || 'https://musicapi.xoxod33p.me/api')
 ).replace(/\/+$/, '');
