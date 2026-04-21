@@ -5,6 +5,8 @@ const API_BASE = (import.meta.env.DEV
   : (import.meta.env.VITE_API_BASE_URL || 'https://musicapi.xoxod33p.me/api')
 ).replace(/\/+$/, '');
 
+const UPLOAD_TIMEOUT_MS = Number(import.meta.env.VITE_UPLOAD_TIMEOUT_MS) || 15 * 60 * 1000;
+
 const api = axios.create({
   baseURL: API_BASE,
   timeout: 30000,
@@ -59,6 +61,7 @@ export const musicAPI = {
     api.post('/music/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress,
+      timeout: UPLOAD_TIMEOUT_MS,
       requiresAuthRedirect: true,
     }),
   toggleLike: (id) => api.post(`/music/${id}/like`, null, { requiresAuthRedirect: true }),

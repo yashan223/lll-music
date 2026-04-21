@@ -123,7 +123,11 @@ export default function Upload() {
       setProgress(0);
     } catch (err) {
       setStatus('error');
-      setErrorMsg(err.response?.data?.message || 'Upload failed. Please try again.');
+      if (err.code === 'ECONNABORTED') {
+        setErrorMsg('Upload is taking longer than expected. Please wait and try again, or upload fewer files at once.');
+      } else {
+        setErrorMsg(err.response?.data?.message || 'Upload failed. Please try again.');
+      }
     }
   };
 
