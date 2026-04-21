@@ -17,13 +17,20 @@ const dataPath = path.join(__dirname, 'data');
 if (!fs.existsSync(dataPath)) fs.mkdirSync(dataPath);
 
 // ─── CORS ────────────────────────────────────────────────────────────────────
+const extraOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:5173',
+  'http://127.0.0.1:5173',
   'https://xoxod33p.me',
   'http://xoxod33p.me',
   'https://www.xoxod33p.me',
   'http://www.xoxod33p.me',
+  ...extraOrigins,
 ].filter(Boolean);
 
 const domainPattern = /^https?:\/\/(?:[a-z0-9-]+\.)*xoxod33p\.me(?::\d+)?$/i;
