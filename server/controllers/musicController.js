@@ -4,9 +4,14 @@ const { Op } = require('sequelize');
 const { sequelize, Song, User, RecentlyPlayed } = require('../models');
 
 exports.uploadSong = async (req, res) => {
+  const audioFiles = Array.isArray(req.files?.audio) ? req.files.audio : [];
+  const coverFile = req.files?.cover?.[0] || null;
+  const generatedCoverFiles = [];
+  let uploadCommitted = false;
+
   try {
-    if (!req.files || !req.files.audio) {
-      return res.status(400).json({ success: false, message: 'MP3 audio file is required.' });
+    if (!audioFiles.length) {
+      return res.status(400).json({ success: false, message: 'At least one MP3 audio file is required.' });
     }
 
     // Explicitly enforce that only admins can upload music
@@ -14,61 +19,83 @@ exports.uploadSong = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden. Only admins can upload music.' });
     }
 
-    let title = req.body.title || '';
-    let artist = req.body.artist || '';
-    let album = req.body.album || '';
-    let genre = req.body.genre || '';
+    // Preserve manual title/artist/album/genre overrides for single-file uploads.
+    const manualMetadata = audioFiles.length === 1
+      ? {
+        title: req.body.title || '',
+        artist: req.body.artist || '',
+        album: req.body.album || '',
+        genre: req.body.genre || '',
+      }
+      : {
+        title: '',
+        artist: '',
+        album: '',
+        genre: '',
+      };
 
-    const audioFile = req.files.audio[0];
-    const coverFile = req.files.cover ? req.files.cover[0] : null;
+    const createdSongIds = [];
 
-    let duration = 0;
-    try {
-      const { parseFile } = await import('music-metadata');
-      const metadata = await parseFile(audioFile.path);
-      duration = Math.floor(metadata.format.duration || 0);
-      
-      if (!title && metadata.common.title) title = metadata.common.title;
-      if (!artist && (metadata.common.artist || metadata.common.albumartist)) artist = metadata.common.artist || metadata.common.albumartist;
-      if (!album && metadata.common.album) album = metadata.common.album;
-      if (!genre && metadata.common.genre && metadata.common.genre.length > 0) genre = metadata.common.genre[0];
-      
-      // If no cover was uploaded but the MP3 has embedded cover art, we can extract it
-      // However, we'll keep it simple for now and rely on manual cover uploads
-    } catch {
-      // Non-fatal
+    await sequelize.transaction(async (transaction) => {
+      for (const audioFile of audioFiles) {
+        let coverPath = null;
+        if (coverFile) {
+          if (audioFiles.length === 1) {
+            coverPath = `covers/${coverFile.filename}`;
+          } else {
+            const clonedCover = cloneCoverFile(coverFile.path, coverFile.filename);
+            generatedCoverFiles.push(clonedCover.path);
+            coverPath = `covers/${clonedCover.filename}`;
+          }
+        }
+
+        const payload = await buildSongPayload(audioFile, manualMetadata, coverPath, req.user.id);
+        const song = await Song.create(payload, { transaction });
+        createdSongIds.push(song.id);
+      }
+    });
+    uploadCommitted = true;
+
+    if (coverFile && audioFiles.length > 1) {
+      cleanupFile(coverFile.path);
     }
 
-    // Ultimate fallbacks
-    if (!title) title = audioFile.originalname.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-    if (!artist) artist = 'Unknown Artist';
-
-    const song = await Song.create({
-      title: title.trim(),
-      artist: artist.trim(),
-      album: album ? album.trim() : 'Unknown Album',
-      genre: genre ? genre.trim() : null,
-      duration,
-      filePath: `music/${audioFile.filename}`,
-      fileName: audioFile.originalname,
-      fileSize: audioFile.size,
-      coverPath: coverFile ? `covers/${coverFile.filename}` : null,
-      uploaderId: req.user.id,
-    });
-
-    const songWithUploader = await Song.findByPk(song.id, {
+    const createdSongs = await Song.findAll({
+      where: { id: { [Op.in]: createdSongIds } },
       include: [{ model: User, as: 'uploadedBy', attributes: ['id', 'username'] }]
     });
 
-    res.status(201).json({
+    const createdSongMap = new Map(createdSongs.map(song => [song.id, song]));
+    const formattedSongs = createdSongIds
+      .map(id => createdSongMap.get(id))
+      .filter(Boolean)
+      .map(song => formatSong(song.toJSON(), req));
+
+    const message = formattedSongs.length === 1
+      ? 'Song uploaded successfully.'
+      : `${formattedSongs.length} songs uploaded successfully.`;
+
+    const response = {
       success: true,
-      message: 'Song uploaded successfully.',
-      song: formatSong(songWithUploader.toJSON(), req),
+      message,
+      uploadedCount: formattedSongs.length,
+      songs: formattedSongs,
+    };
+
+    if (formattedSongs.length === 1) {
+      response.song = formattedSongs[0];
+    }
+
+    res.status(201).json({
+      ...response,
     });
   } catch (err) {
     console.error('Upload error:', err);
-    if (req.files?.audio?.[0]) cleanupFile(req.files.audio[0].path);
-    if (req.files?.cover?.[0]) cleanupFile(req.files.cover[0].path);
+    if (!uploadCommitted) {
+      audioFiles.forEach(file => cleanupFile(file.path));
+      if (coverFile) cleanupFile(coverFile.path);
+      generatedCoverFiles.forEach(filePath => cleanupFile(filePath));
+    }
     res.status(500).json({ success: false, message: 'Upload failed. Please try again.' });
   }
 };
@@ -290,6 +317,70 @@ exports.getRecentlyPlayed = async (req, res) => {
     console.error('RecentlyPlayed error:', err);
     res.status(500).json({ success: false, message: 'Failed to fetch recently played.' });
   }
+};
+
+let parseMusicFileFn;
+
+const getParseMusicFileFn = async () => {
+  if (!parseMusicFileFn) {
+    const musicMetadata = await import('music-metadata');
+    parseMusicFileFn = musicMetadata.parseFile;
+  }
+  return parseMusicFileFn;
+};
+
+const buildSongPayload = async (audioFile, defaults, coverPath, uploaderId) => {
+  let title = defaults.title || '';
+  let artist = defaults.artist || '';
+  let album = defaults.album || '';
+  let genre = defaults.genre || '';
+  let duration = 0;
+
+  try {
+    const parseFile = await getParseMusicFileFn();
+    const metadata = await parseFile(audioFile.path);
+    duration = Math.floor(metadata.format.duration || 0);
+
+    if (!title && metadata.common.title) title = metadata.common.title;
+    if (!artist && (metadata.common.artist || metadata.common.albumartist)) {
+      artist = metadata.common.artist || metadata.common.albumartist;
+    }
+    if (!album && metadata.common.album) album = metadata.common.album;
+    if (!genre && metadata.common.genre && metadata.common.genre.length > 0) {
+      genre = metadata.common.genre[0];
+    }
+  } catch {
+    // Non-fatal: missing metadata should not block upload.
+  }
+
+  if (!title) title = audioFile.originalname.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+  if (!artist) artist = 'Unknown Artist';
+
+  return {
+    title: title.trim(),
+    artist: artist.trim(),
+    album: album ? album.trim() : 'Unknown Album',
+    genre: genre ? genre.trim() : null,
+    duration,
+    filePath: `music/${audioFile.filename}`,
+    fileName: audioFile.originalname,
+    fileSize: audioFile.size,
+    coverPath: coverPath || null,
+    uploaderId,
+  };
+};
+
+const cloneCoverFile = (sourcePath, sourceFilename) => {
+  const ext = path.extname(sourceFilename);
+  const nameWithoutExt = path.basename(sourceFilename, ext).replace(/[^a-zA-Z0-9.\-_]/g, '_');
+  const cloneFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${nameWithoutExt}${ext}`;
+  const clonePath = path.join(path.dirname(sourcePath), cloneFilename);
+
+  fs.copyFileSync(sourcePath, clonePath);
+  return {
+    filename: cloneFilename,
+    path: clonePath,
+  };
 };
 
 const formatSong = (song, req) => {

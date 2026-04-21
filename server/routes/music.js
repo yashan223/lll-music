@@ -12,12 +12,12 @@ const {
   getRecentlyPlayed,
 } = require('../controllers/musicController');
 
-// POST /api/music/upload — upload MP3 + cover (protected)
+// POST /api/music/upload — upload one or more MP3 files + optional cover (protected)
 router.post(
   '/upload',
   protect,
   upload.fields([
-    { name: 'audio', maxCount: 1 },
+    { name: 'audio', maxCount: 20 },
     { name: 'cover', maxCount: 1 },
   ]),
   handleUploadError,

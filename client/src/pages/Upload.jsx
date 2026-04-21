@@ -1,35 +1,78 @@
-import { useState, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Upload as UploadIcon, Music, Image, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { musicAPI } from '../lib/api';
 import { cn, formatFileSize } from '../lib/utils';
 
 const MAX_AUDIO_MB = 50;
 const MAX_IMAGE_MB = 5;
+const MAX_BATCH_FILES = 20;
 
 export default function Upload() {
-  const [audioFile, setAudioFile] = useState(null);
+  const [audioFiles, setAudioFiles] = useState([]);
   const [coverFile, setCoverFile] = useState(null);
   const [coverPreview, setCoverPreview] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [uploadedCount, setUploadedCount] = useState(0);
   const [status, setStatus] = useState('idle'); // idle | uploading | success | error
   const [errorMsg, setErrorMsg] = useState('');
   const audioInputRef = useRef(null);
   const coverInputRef = useRef(null);
 
-  const handleAudioChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const totalAudioSize = useMemo(
+    () => audioFiles.reduce((sum, file) => sum + file.size, 0),
+    [audioFiles]
+  );
 
-    if (!file.name.toLowerCase().endsWith('.mp3') && file.type !== 'audio/mpeg') {
-      setErrorMsg('Only MP3 files are allowed.');
-      return;
+  const isSameFile = (a, b) => (
+    a.name === b.name && a.size === b.size && a.lastModified === b.lastModified
+  );
+
+  const handleAudioChange = (e) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (!selectedFiles.length) return;
+
+    const validFiles = [];
+    const rejected = [];
+
+    selectedFiles.forEach((file) => {
+      const isMp3 = file.name.toLowerCase().endsWith('.mp3') || file.type === 'audio/mpeg';
+      if (!isMp3) {
+        rejected.push(`${file.name}: only MP3 files are allowed.`);
+        return;
+      }
+
+      if (file.size > MAX_AUDIO_MB * 1024 * 1024) {
+        rejected.push(`${file.name}: must be under ${MAX_AUDIO_MB}MB.`);
+        return;
+      }
+
+      validFiles.push(file);
+    });
+
+    if (validFiles.length) {
+      const merged = [...audioFiles];
+      validFiles.forEach((file) => {
+        if (merged.length >= MAX_BATCH_FILES) {
+          rejected.push(`You can upload up to ${MAX_BATCH_FILES} files at once.`);
+          return;
+        }
+        if (!merged.some((existing) => isSameFile(existing, file))) {
+          merged.push(file);
+        }
+      });
+
+      setAudioFiles(merged);
+      if (status === 'success') setStatus('idle');
     }
-    if (file.size > MAX_AUDIO_MB * 1024 * 1024) {
-      setErrorMsg(`Audio file must be under ${MAX_AUDIO_MB}MB.`);
-      return;
+
+    if (rejected.length) {
+      setErrorMsg(rejected[0]);
+    } else {
+      setErrorMsg('');
     }
-    setErrorMsg('');
-    setAudioFile(file);
+
+    // Allow re-selecting the same files in a subsequent pick.
+    e.target.value = '';
   };
 
   const handleCoverChange = (e) => {
@@ -45,12 +88,19 @@ export default function Upload() {
     setCoverPreview(url);
   };
 
+  const removeAudioFile = (indexToRemove) => {
+    setAudioFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!audioFile) { setErrorMsg('Please select an MP3 file.'); return; }
+    if (!audioFiles.length) {
+      setErrorMsg('Please select at least one MP3 file.');
+      return;
+    }
 
     const fd = new FormData();
-    fd.append('audio', audioFile);
+    audioFiles.forEach((file) => fd.append('audio', file));
     if (coverFile) fd.append('cover', coverFile);
 
     setStatus('uploading');
@@ -58,14 +108,16 @@ export default function Upload() {
     setErrorMsg('');
 
     try {
-      await musicAPI.uploadSong(fd, (evt) => {
+      const response = await musicAPI.uploadSong(fd, (evt) => {
         if (evt.total) {
           setProgress(Math.round((evt.loaded / evt.total) * 100));
         }
       });
 
+      const count = response?.data?.uploadedCount || audioFiles.length;
+      setUploadedCount(count);
       setStatus('success');
-      setAudioFile(null);
+      setAudioFiles([]);
       setCoverFile(null);
       setCoverPreview(null);
       setProgress(0);
@@ -93,7 +145,9 @@ export default function Upload() {
       {status === 'success' && (
         <div className="mb-6 flex items-center gap-3 bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-xl">
           <CheckCircle size={18} />
-          <span className="text-sm font-medium">Song uploaded successfully!</span>
+          <span className="text-sm font-medium">
+            {uploadedCount === 1 ? 'Song uploaded successfully!' : `${uploadedCount} songs uploaded successfully!`}
+          </span>
           <button type="button" onClick={resetStatus} className="ml-auto">
             <X size={16} />
           </button>
@@ -115,31 +169,62 @@ export default function Upload() {
         {/* Audio drop zone */}
         <div>
           <label className="block text-sm font-medium text-[hsl(var(--foreground))] mb-2">
-            Audio File <span className="text-red-400">*</span>
+            Audio Files <span className="text-red-400">*</span>
           </label>
           <button
             type="button"
             onClick={() => audioInputRef.current?.click()}
             className={cn(
               'w-full border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer min-h-[220px] flex items-center justify-center',
-              audioFile
+              audioFiles.length
                 ? 'border-purple-500/60 bg-purple-500/10'
                 : 'border-[hsl(var(--border))] hover:border-purple-500/40 hover:bg-purple-500/5'
             )}
           >
-            {audioFile ? (
-              <div className="flex flex-col items-center gap-2">
+            {audioFiles.length ? (
+              <div className="flex flex-col items-center gap-3 w-full max-w-xl">
                 <div className="w-16 h-16 rounded-xl gradient-bg flex items-center justify-center">
                   <Music size={28} className="text-white" />
                 </div>
-                <p className="text-[hsl(var(--foreground))] font-medium mt-2">{audioFile.name}</p>
-                <p className="text-[hsl(var(--muted-foreground))] text-sm">{formatFileSize(audioFile.size)}</p>
+                <p className="text-[hsl(var(--foreground))] font-medium mt-1">
+                  {audioFiles.length} {audioFiles.length === 1 ? 'file' : 'files'} ready
+                </p>
+                <p className="text-[hsl(var(--muted-foreground))] text-sm">
+                  {formatFileSize(totalAudioSize)} total
+                </p>
+                <div className="w-full max-h-36 overflow-y-auto rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--background))]">
+                  {audioFiles.map((file, index) => (
+                    <div
+                      key={`${file.name}-${file.lastModified}-${index}`}
+                      className="flex items-center gap-3 px-3 py-2 border-b border-[hsl(var(--border))] last:border-b-0"
+                    >
+                      <Music size={14} className="text-purple-300 flex-shrink-0" />
+                      <div className="min-w-0 flex-1 text-left">
+                        <p className="text-sm text-[hsl(var(--foreground))] truncate">{file.name}</p>
+                        <p className="text-xs text-[hsl(var(--muted-foreground))]">{formatFileSize(file.size)}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeAudioFile(index);
+                        }}
+                        className="text-xs text-red-400 hover:text-red-300 font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); setAudioFile(null); }}
-                  className="text-sm font-medium z-10 p-2 mt-1 text-red-400 hover:text-red-300 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    audioInputRef.current?.click();
+                  }}
+                  className="text-sm font-medium z-10 px-4 py-2 mt-1 text-purple-300 hover:text-purple-200 transition-colors"
                 >
-                  Remove audio
+                  Add more files
                 </button>
               </div>
             ) : (
@@ -149,9 +234,9 @@ export default function Upload() {
                 </div>
                 <div>
                   <p className="text-[hsl(var(--foreground))] font-medium text-base">
-                    Drag & drop your audio file here
+                    Drag & drop your audio files here
                   </p>
-                  <p className="text-[hsl(var(--muted-foreground))] text-sm mt-1">MP3 files only, max 50MB</p>
+                  <p className="text-[hsl(var(--muted-foreground))] text-sm mt-1">MP3 only, max 50MB each, up to {MAX_BATCH_FILES} files</p>
                 </div>
                 <div className="mt-3 text-sm font-semibold gradient-text px-6 py-2.5 rounded-xl bg-[hsl(var(--background))] border border-[hsl(var(--border))] shadow-sm transition-transform pointer-events-auto hover:scale-105 active:scale-95">
                   Browse Files
@@ -163,6 +248,7 @@ export default function Upload() {
             ref={audioInputRef}
             type="file"
             accept=".mp3,audio/mpeg"
+            multiple
             onChange={handleAudioChange}
             className="hidden"
           />
@@ -187,7 +273,10 @@ export default function Upload() {
             </button>
             <div className="text-sm text-[hsl(var(--muted-foreground))]">
               <p className="font-medium text-[hsl(var(--foreground))]">Attach an image</p>
-              <p className="mt-0.5">JPEG, PNG, or WebP. Max 5MB</p>
+              <p className="mt-0.5">JPEG, PNG, WebP, or GIF. Max 5MB</p>
+              {audioFiles.length > 1 && (
+                <p className="mt-1">The selected cover will be applied to all uploaded songs.</p>
+              )}
               {coverFile && (
                 <button
                   type="button"
@@ -202,7 +291,7 @@ export default function Upload() {
           <input
             ref={coverInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/gif"
             onChange={handleCoverChange}
             className="hidden"
           />
@@ -232,12 +321,12 @@ export default function Upload() {
           {status === 'uploading' ? (
             <>
               <Loader2 size={18} className="animate-spin" />
-              Uploading {progress}%...
+              Uploading {audioFiles.length} {audioFiles.length === 1 ? 'song' : 'songs'}... {progress}%
             </>
           ) : (
             <>
               <UploadIcon size={18} />
-              Upload Song
+              Upload {audioFiles.length > 1 ? `${audioFiles.length} Songs` : 'Song'}
             </>
           )}
         </button>
