@@ -18,6 +18,7 @@ import { usePlayer } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
 import { musicAPI } from '../lib/api';
 import { cn, formatDuration, stringToColor } from '../lib/utils';
+import NowPlayingSheet from './NowPlayingSheet';
 
 export default function Player() {
   const {
@@ -46,6 +47,7 @@ export default function Player() {
   const seekBarRef = useRef(null);
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPreview, setSeekPreview] = useState(null); // preview % while dragging
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const liked = currentSong ? isFavorite(currentSong.id) : false;
 
@@ -150,8 +152,13 @@ export default function Player() {
         </div>
       </div>
 
-      {/* Song Info */}
-      <div className="flex items-center gap-2 md:gap-3 w-auto md:w-72 min-w-0 max-w-[50%] md:max-w-none">
+      {/* Song Info (Tappable on mobile to open sheet) */}
+      <div 
+        className="flex items-center gap-2 md:gap-3 w-auto md:w-72 min-w-0 max-w-[50%] md:max-w-none cursor-pointer md:cursor-default"
+        onClick={() => {
+          if (window.innerWidth < 768) setIsSheetOpen(true);
+        }}
+      >
         {/* Cover */}
         <div
           className="w-10 h-10 md:w-[52px] md:h-[52px] rounded-md md:rounded-lg flex-shrink-0 overflow-hidden flex items-center justify-center"
@@ -317,6 +324,8 @@ export default function Player() {
           className="flex-1 h-1.5 rounded-full accent-purple-500 cursor-pointer min-w-0"
         />
       </div>
+
+      <NowPlayingSheet open={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
     </div>
   );
 }

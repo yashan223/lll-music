@@ -238,6 +238,33 @@ export function PlayerProvider({ children }) {
 
   // ─── Audio Event Listeners ────────────────────────────────────────────────
 
+  const updateMediaMetadata = useCallback(() => {
+    if (!supportsMediaSession) return;
+    const song = currentSongRef.current;
+    if (!song) {
+      navigator.mediaSession.metadata = null;
+      return;
+    }
+
+    const artwork = song.coverUrl
+      ? [
+          { src: song.coverUrl, sizes: '96x96', type: 'image/jpeg' },
+          { src: song.coverUrl, sizes: '128x128', type: 'image/jpeg' },
+          { src: song.coverUrl, sizes: '192x192', type: 'image/jpeg' },
+          { src: song.coverUrl, sizes: '256x256', type: 'image/jpeg' },
+          { src: song.coverUrl, sizes: '384x384', type: 'image/jpeg' },
+          { src: song.coverUrl, sizes: '512x512', type: 'image/jpeg' },
+        ]
+      : [];
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: song.title || 'Unknown Title',
+      artist: song.artist || 'Unknown Artist',
+      album: song.album || 'LLL Music',
+      artwork,
+    });
+  }, []);
+
   useEffect(() => {
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleDurationChange = () => setDuration(audio.duration || 0);
@@ -258,7 +285,10 @@ export function PlayerProvider({ children }) {
       setIsLoading(false);
       applyPendingSeek();
     };
-    const handlePlay = () => setIsPlaying(true);
+    const handlePlay = () => {
+      setIsPlaying(true);
+      updateMediaMetadata(); // Re-assert metadata on play (fixes iOS)
+    };
     const handlePause = () => setIsPlaying(false);
     const handleError = () => {
       handlePlaybackFailure();
@@ -285,7 +315,7 @@ export function PlayerProvider({ children }) {
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('error', handleError);
     };
-  }, [repeat, queue, queueIndex, shuffle, handlePlaybackFailure, applyPendingSeek]);
+  }, [repeat, queue, queueIndex, shuffle, handlePlaybackFailure, applyPendingSeek, updateMediaMetadata]);
 
   // ─── Volume sync ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -417,24 +447,15 @@ export function PlayerProvider({ children }) {
   // ─── Media Session API ───────────────────────────────────────────────────
   // Set metadata whenever the current song changes
   useEffect(() => {
-    if (!supportsMediaSession) return;
-
-    if (!currentSong) {
-      navigator.mediaSession.metadata = null;
-      return;
+    if (currentSong) {
+      audio.title = currentSong.title || 'Unknown Title';
+      document.title = `${currentSong.title} - ${currentSong.artist || 'Unknown'} | LLL Music`;
+      updateMediaMetadata();
+    } else {
+      document.title = 'LLL Music — Stream Your World';
+      if (supportsMediaSession) navigator.mediaSession.metadata = null;
     }
-
-    const artwork = currentSong.coverUrl
-      ? [{ src: currentSong.coverUrl, sizes: '512x512', type: 'image/jpeg' }]
-      : [];
-
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: currentSong.title || 'Unknown Title',
-      artist: currentSong.artist || 'Unknown Artist',
-      album: currentSong.album || '',
-      artwork,
-    });
-  }, [currentSong]);
+  }, [currentSong, audio, updateMediaMetadata]);
 
   // Keep playback state in sync
   useEffect(() => {
