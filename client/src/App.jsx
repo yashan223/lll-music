@@ -50,8 +50,8 @@ export default function App() {
 
             {/* Application shell */}
             <Route path="/" element={<Layout />}>
-              {/* Public route */}
-              <Route index element={<Library />} />
+              {/* Protected Routes */}
+              <Route index element={<ProtectedRoute><Library /></ProtectedRoute>} />
               
               {/* Admin-only / Protected Routes */}
               <Route path="upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />

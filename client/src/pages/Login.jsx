@@ -41,7 +41,7 @@ export default function Login() {
             <Music2 size={28} className="text-white" />
           </div>
           <h1 className="text-3xl font-bold gradient-text">LLL Music</h1>
-          <p className="text-[hsl(var(--muted-foreground))] mt-1 text-sm">Login to your account</p>
+          <p className="text-[hsl(var(--muted-foreground))] mt-1 text-sm">Welcome back! Sign in to continue.</p>
         </div>
 
         {/* Card */}
