@@ -55,7 +55,7 @@ export default function NowPlayingSheet({ open, onClose }) {
 
   const liked = currentSong ? isFavorite(currentSong.id) : false;
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const coverBg = currentSong ? stringToColor(currentSong.title) : '#6d28d9';
+  const coverBg = currentSong ? stringToColor(currentSong.title) : '#3b82f6';
 
   // Lock body scroll when open
   useEffect(() => {
@@ -318,7 +318,7 @@ export default function NowPlayingSheet({ open, onClose }) {
             <button
               onClick={togglePlay}
               className="w-16 h-16 rounded-full flex items-center justify-center shadow-xl transition-all active:scale-95"
-              style={{ background: 'linear-gradient(135deg, hsl(263,70%,50%), hsl(196,80%,45%))' }}
+              style={{ background: 'linear-gradient(135deg, hsl(217,90%,50%), hsl(190,90%,45%))' }}
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isLoading ? (
