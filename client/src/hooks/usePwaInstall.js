@@ -53,6 +53,22 @@ export default function usePwaInstall() {
 
   const promptInstall = useCallback(async () => {
     if (!deferredPrompt) {
+      if (isIos && typeof window.navigator.share === 'function') {
+        try {
+          await window.navigator.share({
+            title: 'LLL Music',
+            text: 'Add LLL Music to your Home Screen',
+            url: window.location.href,
+          });
+
+          return { status: 'ios-share-opened' };
+        } catch (error) {
+          if (error?.name === 'AbortError') {
+            return { status: 'dismissed' };
+          }
+        }
+      }
+
       return { status: isIos ? 'ios' : 'unavailable' };
     }
 

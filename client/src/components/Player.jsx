@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Play,
   Pause,
@@ -44,17 +44,48 @@ export default function Player() {
 
   const { isFavorite, updateFavorites, user } = useAuth();
   const seekBarRef = useRef(null);
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [seekPreview, setSeekPreview] = useState(null); // preview % while dragging
 
   const liked = currentSong ? isFavorite(currentSong.id) : false;
 
+  // Shared seek ratio calculator
+  const ratioFromEvent = useCallback((clientX) => {
+    const rect = seekBarRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  }, []);
+
   const handleSeek = useCallback(
     (e) => {
-      const rect = seekBarRef.current.getBoundingClientRect();
-      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      seek(ratio * duration);
+      const ratio = ratioFromEvent(e.clientX);
+      if (ratio != null) seek(ratio * duration);
     },
-    [duration, seek]
+    [duration, seek, ratioFromEvent]
   );
+
+  // Touch handlers for the mobile seek bar
+  const handleTouchStart = useCallback((e) => {
+    e.preventDefault();
+    setIsSeeking(true);
+    const ratio = ratioFromEvent(e.touches[0].clientX);
+    if (ratio != null) setSeekPreview(ratio * 100);
+  }, [ratioFromEvent]);
+
+  const handleTouchMove = useCallback((e) => {
+    e.preventDefault();
+    if (!isSeeking) return;
+    const ratio = ratioFromEvent(e.touches[0].clientX);
+    if (ratio != null) setSeekPreview(ratio * 100);
+  }, [isSeeking, ratioFromEvent]);
+
+  const handleTouchEnd = useCallback((e) => {
+    e.preventDefault();
+    const ratio = seekPreview != null ? seekPreview / 100 : ratioFromEvent(e.changedTouches[0]?.clientX);
+    if (ratio != null) seek(ratio * duration);
+    setIsSeeking(false);
+    setSeekPreview(null);
+  }, [seekPreview, duration, seek, ratioFromEvent]);
 
   const handleVolumeChange = useCallback(
     (e) => {
@@ -91,16 +122,32 @@ export default function Player() {
   return (
     <div className="relative h-16 md:h-20 bg-[hsl(var(--player-bg))] border-t border-[hsl(var(--border))] player-shadow flex items-center px-3 md:px-4 gap-2 md:gap-4 justify-between md:justify-start">
       
-      {/* Mobile absolute seek bar (hidden on md) */}
-      <div 
-        ref={seekBarRef}
-        onClick={handleSeek}
-        className="absolute top-0 left-0 right-0 h-1 md:hidden bg-[hsl(var(--border))] cursor-pointer group"
-      >
+      {/* Mobile seek bar with timestamps (hidden on md+) */}
+      <div className="absolute top-0 left-0 right-0 md:hidden flex flex-col select-none" style={{ touchAction: 'none' }}>
+        {/* Seek track */}
         <div
-          className="absolute inset-y-0 left-0 bg-purple-500 transition-all"
-          style={{ width: `${progress}%` }}
-        />
+          ref={seekBarRef}
+          onClick={handleSeek}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="h-[3px] bg-white/10 cursor-pointer group relative"
+        >
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-[width] duration-100"
+            style={{ width: `${isSeeking && seekPreview != null ? seekPreview : progress}%` }}
+          />
+          {/* Thumb – always visible on mobile */}
+          <div
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-white shadow-md transition-[left] duration-100 pointer-events-none"
+            style={{ left: `${isSeeking && seekPreview != null ? seekPreview : progress}%` }}
+          />
+        </div>
+        {/* Timestamps */}
+        <div className="flex justify-between px-3 pt-0.5 pb-0">
+          <span className="text-[9px] tabular-nums text-white/50">{formatDuration(isSeeking && seekPreview != null ? (seekPreview / 100) * duration : currentTime)}</span>
+          <span className="text-[9px] tabular-nums text-white/50">{formatDuration(duration)}</span>
+        </div>
       </div>
 
       {/* Song Info */}

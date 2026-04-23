@@ -6,6 +6,9 @@ import {
   useEffect,
   useCallback,
 } from 'react';
+
+// ─── Media Session helper ─────────────────────────────────────────────────────
+const supportsMediaSession = typeof navigator !== 'undefined' && 'mediaSession' in navigator;
 import { musicAPI } from '../lib/api';
 
 const PlayerContext = createContext(null);
@@ -410,6 +413,81 @@ export function PlayerProvider({ children }) {
 
   const toggleShuffle = useCallback(() => setShuffle((prev) => !prev), []);
   const canResume = !!currentSong && !isPlaying && currentTime > 1;
+
+  // ─── Media Session API ───────────────────────────────────────────────────
+  // Set metadata whenever the current song changes
+  useEffect(() => {
+    if (!supportsMediaSession) return;
+
+    if (!currentSong) {
+      navigator.mediaSession.metadata = null;
+      return;
+    }
+
+    const artwork = currentSong.coverUrl
+      ? [{ src: currentSong.coverUrl, sizes: '512x512', type: 'image/jpeg' }]
+      : [];
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentSong.title || 'Unknown Title',
+      artist: currentSong.artist || 'Unknown Artist',
+      album: currentSong.album || '',
+      artwork,
+    });
+  }, [currentSong]);
+
+  // Keep playback state in sync
+  useEffect(() => {
+    if (!supportsMediaSession) return;
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+  }, [isPlaying]);
+
+  // Update position state so the seek bar in the notification is accurate
+  useEffect(() => {
+    if (!supportsMediaSession || !duration || !Number.isFinite(duration)) return;
+    try {
+      navigator.mediaSession.setPositionState({
+        duration,
+        playbackRate: audio.playbackRate || 1,
+        position: Math.min(currentTime, duration),
+      });
+    } catch {
+      // setPositionState is not supported on all browsers
+    }
+  }, [currentTime, duration, audio]);
+
+  // Register action handlers once
+  useEffect(() => {
+    if (!supportsMediaSession) return;
+
+    const handlers = [
+      ['play',          () => { audio.play().catch(console.error); }],
+      ['pause',         () => { audio.pause(); }],
+      ['previoustrack', () => playPrev()],
+      ['nexttrack',     () => playNext()],
+      ['seekto',        (details) => {
+        if (details.seekTime != null) seek(details.seekTime);
+      }],
+      ['seekbackward',  (details) => {
+        const offset = details.seekOffset ?? 10;
+        seek(Math.max(0, audio.currentTime - offset));
+      }],
+      ['seekforward',   (details) => {
+        const offset = details.seekOffset ?? 10;
+        seek(Math.min(audio.duration || 0, audio.currentTime + offset));
+      }],
+    ];
+
+    handlers.forEach(([action, handler]) => {
+      try { navigator.mediaSession.setActionHandler(action, handler); } catch { /* unsupported action */ }
+    });
+
+    return () => {
+      handlers.forEach(([action]) => {
+        try { navigator.mediaSession.setActionHandler(action, null); } catch { /* noop */ }
+      });
+    };
+  }, [audio, seek, playPrev, playNext]);
 
   return (
     <PlayerContext.Provider

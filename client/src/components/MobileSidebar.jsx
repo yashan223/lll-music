@@ -7,8 +7,9 @@ import usePwaInstall from '../hooks/usePwaInstall';
 
 export default function MobileSidebar() {
   const [open, setOpen] = useState(false);
+  const [iosToast, setIosToast] = useState(false);
   const { user, logout } = useAuth();
-  const { isStandalone, promptInstall } = usePwaInstall();
+  const { isStandalone, isIos, canPromptInstall, promptInstall } = usePwaInstall();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -20,15 +21,19 @@ export default function MobileSidebar() {
   const handleInstallClick = async () => {
     const result = await promptInstall();
 
-    if (result.status === 'ios') {
-      window.alert('On iPhone: tap Share in Safari, then tap Add to Home Screen.');
+    if (result.status === 'ios-share-opened') {
+      setOpen(false);
       return;
     }
 
-    if (result.status === 'unavailable') {
-      window.alert('Install is not available yet in this browser session. Try opening in Safari or Chrome.');
+    if (result.status === 'ios') {
+      // Show a nice in-drawer tip instead of a browser alert
+      setIosToast(true);
+      setTimeout(() => setIosToast(false), 5000);
+      return;
     }
 
+    // 'accepted', 'dismissed', or 'unavailable' — just close
     setOpen(false);
   };
 
@@ -106,15 +111,22 @@ export default function MobileSidebar() {
             </NavLink>
           ))}
 
-          {!isStandalone && (
-            <button
-              type="button"
-              onClick={handleInstallClick}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-purple-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
-            >
-              <Download size={18} className="group-hover:text-purple-400 transition-colors" />
-              <span>Add to Home</span>
-            </button>
+          {!isStandalone && (canPromptInstall || isIos) && (
+            <>
+              <button
+                type="button"
+                onClick={handleInstallClick}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-purple-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
+              >
+                <Download size={18} className="group-hover:text-purple-400 transition-colors" />
+                <span>Add to Home</span>
+              </button>
+              {iosToast && (
+                <p className="mx-3 mb-1 text-[11px] text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-md px-3 py-2 leading-snug">
+                  Tap <strong>Share</strong> in Safari, then <strong>Add to Home Screen</strong>.
+                </p>
+              )}
+            </>
           )}
         </nav>
 
