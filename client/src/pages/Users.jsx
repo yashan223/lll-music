@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Trash2, Shield, Calendar, Music, ListMusic, Loader2, Search } from 'lucide-react';
+import { User, Trash2, Shield, Calendar, Music, ListMusic, Loader2, Search, Edit2, X, Check } from 'lucide-react';
 import { userAPI } from '../lib/api';
 import { cn } from '../lib/utils';
 import ConfirmModal from '../components/ConfirmModal';
@@ -9,8 +9,15 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  
+  // Delete state
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Edit state
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({ username: '', email: '', isAdmin: false });
+  const [updating, setUpdating] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -40,6 +47,31 @@ export default function Users() {
       alert(err.response?.data?.message || 'Failed to delete user.');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleEditClick = (user) => {
+    setEditingUser(user);
+    setEditForm({
+      username: user.username,
+      email: user.email,
+      isAdmin: user.isAdmin
+    });
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    
+    try {
+      setUpdating(true);
+      const res = await userAPI.update(editingUser.id, editForm);
+      setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...res.data.user } : u));
+      setEditingUser(null);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update user.');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -89,8 +121,7 @@ export default function Users() {
               <tr className="border-b border-white/5 bg-white/5">
                 <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">User</th>
                 <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Role</th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Stats</th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Joined</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))] text-center">Stats</th>
                 <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))] text-right">Actions</th>
               </tr>
             </thead>
@@ -118,7 +149,7 @@ export default function Users() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-4 text-[hsl(var(--muted-foreground))]">
+                    <div className="flex items-center justify-center gap-4 text-[hsl(var(--muted-foreground))]">
                       <div className="flex items-center gap-1.5" title="Songs Uploaded">
                         <Music size={14} />
                         <span className="text-xs font-medium">{u.songCount}</span>
@@ -129,21 +160,24 @@ export default function Users() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-xs text-[hsl(var(--muted-foreground))]">
-                    <div className="flex items-center gap-1.5">
-                      <Calendar size={14} />
-                      {new Date(u.createdAt).toLocaleDateString()}
-                    </div>
-                  </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => setDeleteUserId(u.id)}
-                      disabled={u.isAdmin && u.email === 'yashan2003@test.com'}
-                      className="p-2 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-0 pointer-events-auto"
-                      title="Delete User"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleEditClick(u)}
+                        className="p-2 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-blue-400 hover:bg-blue-500/10 transition-all"
+                        title="Edit User"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteUserId(u.id)}
+                        disabled={u.isAdmin && u.email === 'yashan2003@test.com'}
+                        className="p-2 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-0 pointer-events-auto"
+                        title="Delete User"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -157,6 +191,84 @@ export default function Users() {
           </div>
         )}
       </div>
+
+      {/* Edit User Modal */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+          <div className="glass w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/5">
+              <h3 className="text-lg font-bold text-white">Modify User</h3>
+              <button onClick={() => setEditingUser(null)} className="text-[hsl(var(--muted-foreground))] hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdate} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[hsl(var(--muted-foreground))]">Username</label>
+                <input
+                  type="text"
+                  value={editForm.username}
+                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                  className="w-full px-4 py-2 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[hsl(var(--muted-foreground))]">Email Address</label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  className="w-full px-4 py-2 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  required
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                <div>
+                  <p className="text-sm font-semibold text-white">Administrator Privileges</p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Allow full access to manage content and users.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditForm({ ...editForm, isAdmin: !editForm.isAdmin })}
+                  disabled={editingUser.email === 'yashan2003@test.com'}
+                  className={cn(
+                    "w-12 h-6 rounded-full transition-all relative flex items-center px-1",
+                    editForm.isAdmin ? "bg-blue-500" : "bg-white/10",
+                    editingUser.email === 'yashan2003@test.com' && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <div className={cn(
+                    "w-4 h-4 rounded-full bg-white shadow-md transition-transform",
+                    editForm.isAdmin ? "translate-x-6" : "translate-x-0"
+                  )} />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3 mt-8">
+                <button
+                  type="button"
+                  onClick={() => setEditingUser(null)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 text-white font-medium hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updating}
+                  className="flex-1 px-4 py-2.5 rounded-xl gradient-bg text-white font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                >
+                  {updating ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                  {updating ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={deleteUserId !== null}

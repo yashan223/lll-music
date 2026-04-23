@@ -90,6 +90,7 @@ export const playlistAPI = {
 // ─── User Management API ──────────────────────────────────────────────────────
 export const userAPI = {
   getAll: () => api.get('/users', { requiresAuthRedirect: true }),
+  update: (id, data) => api.put(`/users/${id}`, data, { requiresAuthRedirect: true }),
   delete: (id) => api.delete(`/users/${id}`, { requiresAuthRedirect: true }),
 };
 

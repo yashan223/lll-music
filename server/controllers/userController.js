@@ -57,3 +57,46 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to delete user.' });
   }
 };
+
+exports.updateUser = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ success: false, message: 'Forbidden. Admin access required.' });
+    }
+
+    const { username, email, isAdmin } = req.body;
+    const userToUpdate = await User.findByPk(req.params.id);
+
+    if (!userToUpdate) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Prevent modifying the primary admin's critical fields or role
+    if (userToUpdate.email === 'yashan2003@test.com') {
+      if (isAdmin === false) {
+        return res.status(403).json({ success: false, message: 'Cannot demote the primary admin.' });
+      }
+    }
+
+    await userToUpdate.update({
+      username: username || userToUpdate.username,
+      email: email || userToUpdate.email,
+      isAdmin: typeof isAdmin === 'boolean' ? isAdmin : userToUpdate.isAdmin,
+    });
+
+    res.json({
+      success: true,
+      message: 'User updated successfully.',
+      user: {
+        id: userToUpdate.id,
+        username: userToUpdate.username,
+        email: userToUpdate.email,
+        isAdmin: userToUpdate.isAdmin,
+      }
+    });
+  } catch (err) {
+    console.error('UpdateUser error:', err);
+    res.status(500).json({ success: false, message: 'Failed to update user.' });
+  }
+};
+
