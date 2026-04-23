@@ -128,13 +128,13 @@ export default function Library() {
             placeholder="Search by title, artist, or album..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-all text-sm"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all text-sm"
           />
         </div>
 
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="p-2.5 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-purple-500/50 transition-all"
+          className="p-2.5 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-blue-500/50 transition-all"
         >
           <SlidersHorizontal size={17} />
         </button>
@@ -150,7 +150,7 @@ export default function Library() {
               onClick={() => setSort(opt.value)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 sort === opt.value
-                  ? 'gradient-bg text-white shadow-lg shadow-purple-500/25'
+                  ? 'gradient-bg text-white shadow-lg shadow-blue-500/25'
                   : 'bg-[hsl(var(--input))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] border border-[hsl(var(--border))]'
               }`}
             >
@@ -164,7 +164,7 @@ export default function Library() {
         {/* Content */}
         {loading && songs.length === 0 ? (
           <div className="flex items-center justify-center py-24 gap-3">
-            <Loader2 size={22} className="animate-spin text-purple-400" />
+            <Loader2 size={22} className="animate-spin text-blue-400" />
             <span className="text-[hsl(var(--muted-foreground))]">Loading songs...</span>
           </div>
         ) : songs.length === 0 ? (
@@ -199,7 +199,7 @@ export default function Library() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={!pagination.hasPrevPage || loading}
-              className="px-4 py-2 rounded-xl text-sm border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-purple-500/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="px-4 py-2 rounded-xl text-sm border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-blue-500/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Previous
             </button>
@@ -224,7 +224,7 @@ export default function Library() {
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={!pagination.hasNextPage || loading}
-              className="px-4 py-2 rounded-xl text-sm border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-purple-500/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="px-4 py-2 rounded-xl text-sm border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-blue-500/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Next
             </button>

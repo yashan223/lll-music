@@ -62,7 +62,7 @@ export default function Sidebar() {
     <aside className="flex flex-col w-64 min-h-full bg-[hsl(var(--sidebar-bg))] border-r border-[hsl(var(--border))]">
       {/* Logo */}
       <div className="px-6 py-6 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/20">
+        <div className="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
           <Music2 size={20} className="text-white" />
         </div>
         <span className="text-xl font-bold gradient-text tracking-tight">LLL Music</span>
@@ -79,7 +79,7 @@ export default function Sidebar() {
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group',
                 isActive
-                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                   : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--accent))] border border-transparent'
               )
             }
@@ -90,11 +90,11 @@ export default function Sidebar() {
                   size={18}
                   className={cn(
                     'transition-colors',
-                    isActive ? 'text-purple-400' : 'group-hover:text-purple-400'
+                    isActive ? 'text-blue-400' : 'group-hover:text-blue-400'
                   )}
                 />
                 <span>{label}</span>
-                {isActive && <ChevronRight size={14} className="ml-auto text-purple-400" />}
+                {isActive && <ChevronRight size={14} className="ml-auto text-blue-400" />}
               </>
             )}
           </NavLink>
@@ -108,13 +108,13 @@ export default function Sidebar() {
             <button
               type="button"
               onClick={handleInstallClick}
-              className="mb-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-purple-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
+              className="mb-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-blue-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
             >
-              <Download size={18} className="group-hover:text-purple-400 transition-colors" />
+              <Download size={18} className="group-hover:text-blue-400 transition-colors" />
               <span>Add to Home</span>
             </button>
             {iosToast && (
-              <p className="mb-2 text-[11px] text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-md px-3 py-2 leading-snug">
+              <p className="mb-2 text-[11px] text-blue-300 bg-blue-500/10 border border-blue-500/20 rounded-md px-3 py-2 leading-snug">
                 Tap <strong>Share</strong> in Safari, then <strong>Add to Home Screen</strong>.
               </p>
             )}
@@ -143,9 +143,9 @@ export default function Sidebar() {
         ) : (
           <NavLink
             to="/login"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-purple-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-blue-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
           >
-            <LogIn size={18} className="group-hover:text-purple-400 transition-colors" />
+            <LogIn size={18} className="group-hover:text-blue-400 transition-colors" />
             <span>Admin Login</span>
           </NavLink>
         )}

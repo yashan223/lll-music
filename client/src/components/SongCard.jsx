@@ -74,7 +74,7 @@ export default function SongCard({ song, songs = [], onDelete, onLiked, playlist
         className={cn(
           'group relative flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all duration-200',
           isCurrentSong
-            ? 'bg-purple-500/15 border border-purple-500/30'
+            ? 'bg-blue-500/15 border border-blue-500/30'
             : 'hover:bg-[hsl(var(--accent))] border border-transparent'
         )}
         onClick={handlePlay}
@@ -118,7 +118,7 @@ export default function SongCard({ song, songs = [], onDelete, onLiked, playlist
         <p
           className={cn(
             'text-sm font-semibold truncate',
-            isCurrentSong ? 'text-purple-300' : 'text-[hsl(var(--foreground))]'
+            isCurrentSong ? 'text-blue-300' : 'text-[hsl(var(--foreground))]'
           )}
         >
           {song.title}

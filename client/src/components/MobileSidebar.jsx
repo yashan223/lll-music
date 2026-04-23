@@ -77,7 +77,7 @@ export default function MobileSidebar() {
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--border))]">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center shadow-lg shadow-blue-500/20">
               <Music2 size={16} className="text-white" />
             </div>
             <span className="font-bold gradient-text">LLL Music</span>
@@ -101,7 +101,7 @@ export default function MobileSidebar() {
                 cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
                   isActive
-                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                     : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--accent))] border border-transparent'
                 )
               }
@@ -116,13 +116,13 @@ export default function MobileSidebar() {
               <button
                 type="button"
                 onClick={handleInstallClick}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-purple-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-blue-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
               >
-                <Download size={18} className="group-hover:text-purple-400 transition-colors" />
+                <Download size={18} className="group-hover:text-blue-400 transition-colors" />
                 <span>Add to Home</span>
               </button>
               {iosToast && (
-                <p className="mx-3 mb-1 text-[11px] text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-md px-3 py-2 leading-snug">
+                <p className="mx-3 mb-1 text-[11px] text-blue-300 bg-blue-500/10 border border-blue-500/20 rounded-md px-3 py-2 leading-snug">
                   Tap <strong>Share</strong> in Safari, then <strong>Add to Home Screen</strong>.
                 </p>
               )}
@@ -149,9 +149,9 @@ export default function MobileSidebar() {
             <NavLink
               to="/login"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-2 py-1 text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-purple-400 transition-colors group"
+              className="flex items-center gap-3 px-2 py-1 text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-blue-400 transition-colors group"
             >
-              <LogIn size={18} className="group-hover:text-purple-400 transition-colors" />
+              <LogIn size={18} className="group-hover:text-blue-400 transition-colors" />
               <span>Admin Login</span>
             </NavLink>
           )}

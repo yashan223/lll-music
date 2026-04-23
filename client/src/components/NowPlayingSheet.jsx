@@ -276,7 +276,7 @@ export default function NowPlayingSheet({ open, onClose }) {
             >
               {/* Fill */}
               <div
-                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-purple-400 to-cyan-400 transition-[width] duration-100"
+                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 transition-[width] duration-100"
                 style={{ width: `${displayProgress}%` }}
               />
               {/* Thumb */}
@@ -298,7 +298,7 @@ export default function NowPlayingSheet({ open, onClose }) {
               onClick={toggleShuffle}
               className={cn(
                 'p-2 rounded-full transition-all',
-                shuffle ? 'text-purple-400' : 'text-white/40 hover:text-white'
+                shuffle ? 'text-blue-400' : 'text-white/40 hover:text-white'
               )}
               aria-label="Shuffle"
             >
@@ -344,13 +344,13 @@ export default function NowPlayingSheet({ open, onClose }) {
               onClick={cycleRepeat}
               className={cn(
                 'p-2 rounded-full transition-all relative',
-                repeat !== 'off' ? 'text-purple-400' : 'text-white/40 hover:text-white'
+                repeat !== 'off' ? 'text-blue-400' : 'text-white/40 hover:text-white'
               )}
               aria-label="Repeat"
             >
               {repeat === 'one' ? <Repeat1 size={20} /> : <Repeat size={20} />}
               {repeat !== 'off' && (
-                <span className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-purple-400" />
+                <span className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-blue-400" />
               )}
             </button>
           </div>
@@ -371,7 +371,7 @@ export default function NowPlayingSheet({ open, onClose }) {
               step={0.01}
               value={isMuted ? 0 : volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="flex-1 h-1 rounded-full accent-purple-400 cursor-pointer"
+              className="flex-1 h-1 rounded-full accent-blue-400 cursor-pointer"
               aria-label="Volume"
             />
             <Volume2 size={18} className="text-white/50 flex-shrink-0" />

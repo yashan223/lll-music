@@ -15,7 +15,7 @@ function ProtectedRoute({ children }) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[hsl(var(--background))]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+          <div className="w-12 h-12 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
         </div>
       </div>
     );

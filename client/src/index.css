@@ -8,7 +8,7 @@
     --card-foreground: 213 31% 91%;
     --popover: 224 71% 6%;
     --popover-foreground: 213 31% 91%;
-    --primary: 263 70% 65%;
+    --primary: 217 90% 60%;
     --primary-foreground: 0 0% 100%;
     --secondary: 222 47% 11%;
     --secondary-foreground: 213 31% 91%;
@@ -20,14 +20,14 @@
     --destructive-foreground: 0 0% 100%;
     --border: 216 34% 17%;
     --input: 216 34% 17%;
-    --ring: 263 70% 65%;
+    --ring: 217 90% 60%;
     --radius: 0.75rem;
 
     /* Music player specific */
     --player-bg: 224 71% 5%;
     --sidebar-bg: 222 47% 7%;
-    --gradient-start: 263 70% 50%;
-    --gradient-end: 196 80% 50%;
+    --gradient-start: 217 90% 60%;
+    --gradient-end: 190 90% 50%;
   }
 }
 
@@ -71,14 +71,14 @@
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, hsl(263, 70%, 70%), hsl(196, 80%, 60%));
+    background: linear-gradient(135deg, hsl(217, 90%, 65%), hsl(190, 90%, 55%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .gradient-bg {
-    background: linear-gradient(135deg, hsl(263, 70%, 40%), hsl(196, 80%, 35%));
+    background: linear-gradient(135deg, hsl(217, 90%, 50%), hsl(190, 90%, 45%));
   }
 
   .hover-scale {

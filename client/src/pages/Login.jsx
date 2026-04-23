@@ -31,13 +31,13 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] relative overflow-hidden">
       {/* Background gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-blue-600/20 blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full bg-cyan-600/15 blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md px-4">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center mb-4 shadow-2xl shadow-purple-500/30">
+          <div className="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center mb-4 shadow-2xl shadow-blue-500/30">
             <Music2 size={28} className="text-white" />
           </div>
           <h1 className="text-3xl font-bold gradient-text">LLL Music</h1>
@@ -61,7 +61,7 @@ export default function Login() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="you@example.com"
                 required
-                className="w-full px-4 py-2.5 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-all text-sm"
+                className="w-full px-4 py-2.5 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all text-sm"
               />
             </div>
 
@@ -74,7 +74,7 @@ export default function Login() {
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder="••••••••"
                   required
-                  className="w-full px-4 py-2.5 pr-10 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-all text-sm"
+                  className="w-full px-4 py-2.5 pr-10 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all text-sm"
                 />
                 <button
                   type="button"

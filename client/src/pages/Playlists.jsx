@@ -142,7 +142,7 @@ export default function Playlists() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24 gap-3">
-        <Loader2 size={22} className="animate-spin text-purple-400" />
+        <Loader2 size={22} className="animate-spin text-blue-400" />
         <span className="text-[hsl(var(--muted-foreground))]">Loading playlists...</span>
       </div>
     );
@@ -174,7 +174,7 @@ export default function Playlists() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Playlist name..."
-                className="flex-1 px-3 py-2 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:border-purple-500 text-sm"
+                className="flex-1 px-3 py-2 rounded-xl bg-[hsl(var(--input))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:border-blue-500 text-sm"
               />
               <button
                 type="submit"
@@ -196,7 +196,7 @@ export default function Playlists() {
               <p className="text-sm text-[hsl(var(--muted-foreground))]">No playlists yet</p>
               <button
                 onClick={() => setCreating(true)}
-                className="text-xs text-purple-400 hover:text-purple-300"
+                className="text-xs text-blue-400 hover:text-blue-300"
               >
                 Create your first playlist →
               </button>
@@ -208,7 +208,7 @@ export default function Playlists() {
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer group transition-all',
                   selectedPlaylist?._id === pl._id
-                    ? 'bg-purple-500/20 border border-purple-500/30'
+                    ? 'bg-blue-500/20 border border-blue-500/30'
                     : 'hover:bg-[hsl(var(--accent))] border border-transparent'
                 )}
                 onClick={() => fetchPlaylist(pl._id)}
@@ -246,7 +246,7 @@ export default function Playlists() {
             >
               <X size={18} />
             </button>
-            <div className="w-28 h-28 rounded-2xl gradient-bg flex items-center justify-center flex-shrink-0 shadow-2xl shadow-purple-500/30">
+            <div className="w-28 h-28 rounded-2xl gradient-bg flex items-center justify-center flex-shrink-0 shadow-2xl shadow-blue-500/30">
               <ListMusic size={40} className="text-white" />
             </div>
             <div className="flex-1 min-w-0 pt-2">
@@ -258,7 +258,7 @@ export default function Playlists() {
               {selectedPlaylist.songs?.length > 0 && (
                 <button
                   onClick={playAll}
-                  className="mt-3 px-5 py-2 rounded-xl gradient-bg text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-purple-500/25"
+                  className="mt-3 px-5 py-2 rounded-xl gradient-bg text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-blue-500/25"
                 >
                   Play All
                 </button>

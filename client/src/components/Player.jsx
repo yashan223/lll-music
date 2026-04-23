@@ -136,7 +136,7 @@ export default function Player() {
           className="h-[3px] bg-white/10 cursor-pointer group relative"
         >
           <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-[width] duration-100"
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-[width] duration-100"
             style={{ width: `${isSeeking && seekPreview != null ? seekPreview : progress}%` }}
           />
           {/* Thumb – always visible on mobile */}
@@ -211,7 +211,7 @@ export default function Player() {
             className={cn(
               'hidden md:block transition-colors',
               shuffle
-                ? 'text-purple-400'
+                ? 'text-blue-400'
                 : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
             )}
           >
@@ -244,7 +244,7 @@ export default function Player() {
             <button
               onClick={resumePlayback}
               title={`Resume from ${formatDuration(currentTime)}`}
-              className="flex items-center gap-1 text-purple-300 hover:text-purple-200 transition-colors flex-shrink-0"
+              className="flex items-center gap-1 text-blue-300 hover:text-blue-200 transition-colors flex-shrink-0"
             >
               <RotateCcw size={16} />
               <span className="hidden md:inline text-xs font-medium">Resume</span>
@@ -265,7 +265,7 @@ export default function Player() {
             className={cn(
               'hidden md:block transition-colors relative',
               repeat !== 'off'
-                ? 'text-purple-400'
+                ? 'text-blue-400'
                 : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
             )}
           >
@@ -321,7 +321,7 @@ export default function Player() {
           step={0.01}
           value={isMuted ? 0 : volume}
           onChange={handleVolumeChange}
-          className="flex-1 h-1.5 rounded-full accent-purple-500 cursor-pointer min-w-0"
+          className="flex-1 h-1.5 rounded-full accent-blue-500 cursor-pointer min-w-0"
         />
       </div>
 

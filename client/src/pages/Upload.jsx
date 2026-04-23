@@ -181,8 +181,8 @@ export default function Upload() {
             className={cn(
               'w-full border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer min-h-[220px] flex items-center justify-center',
               audioFiles.length
-                ? 'border-purple-500/60 bg-purple-500/10'
-                : 'border-[hsl(var(--border))] hover:border-purple-500/40 hover:bg-purple-500/5'
+                ? 'border-blue-500/60 bg-blue-500/10'
+                : 'border-[hsl(var(--border))] hover:border-blue-500/40 hover:bg-blue-500/5'
             )}
           >
             {audioFiles.length ? (
@@ -202,7 +202,7 @@ export default function Upload() {
                       key={`${file.name}-${file.lastModified}-${index}`}
                       className="flex items-center gap-3 px-3 py-2 border-b border-[hsl(var(--border))] last:border-b-0"
                     >
-                      <Music size={14} className="text-purple-300 flex-shrink-0" />
+                      <Music size={14} className="text-blue-300 flex-shrink-0" />
                       <div className="min-w-0 flex-1 text-left">
                         <p className="text-sm text-[hsl(var(--foreground))] truncate">{file.name}</p>
                         <p className="text-xs text-[hsl(var(--muted-foreground))]">{formatFileSize(file.size)}</p>
@@ -226,7 +226,7 @@ export default function Upload() {
                     e.stopPropagation();
                     audioInputRef.current?.click();
                   }}
-                  className="text-sm font-medium z-10 px-4 py-2 mt-1 text-purple-300 hover:text-purple-200 transition-colors"
+                  className="text-sm font-medium z-10 px-4 py-2 mt-1 text-blue-300 hover:text-blue-200 transition-colors"
                 >
                   Add more files
                 </button>
@@ -267,7 +267,7 @@ export default function Upload() {
             <button
               type="button"
               onClick={() => coverInputRef.current?.click()}
-              className="relative w-20 h-20 rounded-xl border-2 border-dashed border-[hsl(var(--border))] hover:border-purple-500/40 transition-colors overflow-hidden flex items-center justify-center bg-[hsl(var(--accent))] flex-shrink-0"
+              className="relative w-20 h-20 rounded-xl border-2 border-dashed border-[hsl(var(--border))] hover:border-blue-500/40 transition-colors overflow-hidden flex items-center justify-center bg-[hsl(var(--accent))] flex-shrink-0"
             >
               {coverPreview ? (
                 <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
@@ -306,7 +306,7 @@ export default function Upload() {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-[hsl(var(--muted-foreground))]">Uploading...</span>
-              <span className="text-purple-400 font-medium">{progress}%</span>
+              <span className="text-blue-400 font-medium">{progress}%</span>
             </div>
             <div className="h-2 rounded-full bg-[hsl(var(--border))] overflow-hidden">
               <div
@@ -320,7 +320,7 @@ export default function Upload() {
         <button
           type="submit"
           disabled={status === 'uploading'}
-          className="w-full gradient-bg text-white font-semibold py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-purple-500/25"
+          className="w-full gradient-bg text-white font-semibold py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-blue-500/25"
         >
           {status === 'uploading' ? (
             <>
