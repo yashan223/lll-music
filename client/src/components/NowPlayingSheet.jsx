@@ -355,27 +355,7 @@ export default function NowPlayingSheet({ open, onClose }) {
             </button>
           </div>
 
-          {/* Volume */}
-          <div className="flex items-center gap-3 px-1">
-            <button
-              onClick={toggleMute}
-              className="text-white/50 hover:text-white transition-colors flex-shrink-0"
-              aria-label={isMuted ? 'Unmute' : 'Mute'}
-            >
-              {isMuted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
-            </button>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={isMuted ? 0 : volume}
-              onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="flex-1 h-1 rounded-full accent-blue-400 cursor-pointer"
-              aria-label="Volume"
-            />
-            <Volume2 size={18} className="text-white/50 flex-shrink-0" />
-          </div>
+
         </div>
       </div>
     </>
