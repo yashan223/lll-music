@@ -135,7 +135,9 @@ export default function MobileSidebar() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">{user.username}</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">Admin Mode</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                  {user.isAdmin ? 'Administrator' : 'Member'}
+                </p>
               </div>
               <button
                 onClick={handleLogout}
@@ -152,7 +154,7 @@ export default function MobileSidebar() {
               className="flex items-center gap-3 px-2 py-1 text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-blue-400 transition-colors group"
             >
               <LogIn size={18} className="group-hover:text-blue-400 transition-colors" />
-              <span>Admin Login</span>
+              <span>Login</span>
             </NavLink>
           )}
         </div>

@@ -8,6 +8,7 @@ import Upload from './pages/Upload';
 import Playlists from './pages/Playlists';
 import Favorites from './pages/Favorites';
 import RecentlyPlayed from './pages/RecentlyPlayed';
+import Register from './pages/Register';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -38,6 +39,7 @@ export default function App() {
           <Routes>
             {/* Login explicitly protected by lack of auth */}
             <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+            <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
 
             {/* Application shell */}
             <Route path="/" element={<Layout />}>

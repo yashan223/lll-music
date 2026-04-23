@@ -14,10 +14,7 @@ exports.uploadSong = async (req, res) => {
       return res.status(400).json({ success: false, message: 'At least one MP3 audio file is required.' });
     }
 
-    // Explicitly enforce that only admins can upload music
-    if (!req.user || !req.user.isAdmin) {
-      return res.status(403).json({ success: false, message: 'Forbidden. Only admins can upload music.' });
-    }
+
 
     // Preserve manual title/artist/album/genre overrides for single-file uploads.
     const manualMetadata = audioFiles.length === 1

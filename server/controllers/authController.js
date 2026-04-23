@@ -30,7 +30,53 @@ exports.seedAdmin = async () => {
 
 // Registration is disabled to maintain Admin-only mode, but we keep the handler just in case the route is hit
 exports.register = async (req, res) => {
-  res.status(403).json({ success: false, message: 'Public registration is disabled.' });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    const { username, email, password } = req.body;
+
+    const userExists = await User.findOne({ where: { email: email.toLowerCase() } });
+    if (userExists) {
+      return res.status(400).json({ success: false, message: 'Email already registered.' });
+    }
+
+    const usernameExists = await User.findOne({ where: { username } });
+    if (usernameExists) {
+      return res.status(400).json({ success: false, message: 'Username already taken.' });
+    }
+
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = await User.create({
+      username,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      isAdmin: false, // Force standard user status for public registration
+    });
+
+    const token = generateToken(user.id);
+
+    res.status(201).json({
+      success: true,
+      message: 'Registration successful.',
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        avatarUrl: user.avatarUrl,
+        favorites: [],
+      },
+    });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ success: false, message: 'Server error during registration.' });
+  }
 };
 
 exports.login = async (req, res) => {
@@ -49,11 +95,6 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
-    }
-
-    // Only allow admin login based on user's request
-    if (!user.isAdmin) {
-      return res.status(403).json({ success: false, message: 'Only administrators can log in.' });
     }
 
     const token = generateToken(user.id);

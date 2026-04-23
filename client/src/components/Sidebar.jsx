@@ -130,7 +130,9 @@ export default function Sidebar() {
               <p className="text-sm font-medium text-[hsl(var(--foreground))] truncate">
                 {user.username}
               </p>
-              <p className="text-xs text-[hsl(var(--muted-foreground))] truncate">Admin Mode</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] truncate">
+                {user.isAdmin ? 'Administrator' : 'Member'}
+              </p>
             </div>
             <button
               onClick={handleLogout}
@@ -146,7 +148,7 @@ export default function Sidebar() {
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-blue-400 hover:bg-[hsl(var(--accent))] transition-all group border border-transparent"
           >
             <LogIn size={18} className="group-hover:text-blue-400 transition-colors" />
-            <span>Admin Login</span>
+            <span>Login</span>
           </NavLink>
         )}
       </div>
