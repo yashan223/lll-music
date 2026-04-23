@@ -8,6 +8,7 @@ const { sequelize } = require('./models');
 const authRoutes = require('./routes/auth');
 const musicRoutes = require('./routes/music');
 const playlistRoutes = require('./routes/playlist');
+const userRoutes = require('./routes/userRoutes');
 const { seedAdmin } = require('./controllers/authController');
 
 const app = express();
@@ -57,6 +58,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/music', musicRoutes);
 app.use('/api/playlists', playlistRoutes);
+app.use('/api/users', userRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

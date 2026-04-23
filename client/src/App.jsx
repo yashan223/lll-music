@@ -9,6 +9,7 @@ import Playlists from './pages/Playlists';
 import Favorites from './pages/Favorites';
 import RecentlyPlayed from './pages/RecentlyPlayed';
 import Register from './pages/Register';
+import Users from './pages/Users';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -31,6 +32,12 @@ function PublicOnlyRoute({ children }) {
   return !user ? children : <Navigate to="/" replace />;
 }
 
+function AdminRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user && user.isAdmin ? children : <Navigate to="/" replace />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -51,6 +58,10 @@ export default function App() {
               <Route path="playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
               <Route path="favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
               <Route path="recent" element={<ProtectedRoute><RecentlyPlayed /></ProtectedRoute>} />
+              
+              {/* Admin-only Routes */}
+              <Route path="admin/users" element={<AdminRoute><Users /></AdminRoute>} />
+
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

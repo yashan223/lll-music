@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, Music2, Upload, ListMusic, Heart, Clock, LogOut, LogIn, Download } from 'lucide-react';
+import { Menu, X, Music2, Upload, ListMusic, Heart, Clock, LogOut, LogIn, Download, Users as UsersIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
 import usePwaInstall from '../hooks/usePwaInstall';
@@ -49,6 +49,10 @@ export default function MobileSidebar() {
       { to: '/playlists', label: 'Playlists', icon: ListMusic },
       { to: '/upload', label: 'Upload Music', icon: Upload },
     ];
+    
+    if (user.isAdmin) {
+      navItems.push({ to: '/admin/users', label: 'User Management', icon: UsersIcon });
+    }
   }
 
   return (

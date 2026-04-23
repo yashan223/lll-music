@@ -10,7 +10,8 @@ import {
   User,
   ChevronRight,
   LogIn,
-  Download
+  Download,
+  Users as UsersIcon
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
@@ -56,6 +57,10 @@ export default function Sidebar() {
       { to: '/playlists', label: 'Playlists', icon: ListMusic },
       { to: '/upload', label: 'Upload Music', icon: Upload },
     ];
+    
+    if (user.isAdmin) {
+      navItems.push({ to: '/admin/users', label: 'User Management', icon: UsersIcon });
+    }
   }
 
   return (

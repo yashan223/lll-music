@@ -87,4 +87,10 @@ export const playlistAPI = {
   deletePlaylist: (id) => api.delete(`/playlists/${id}`, { requiresAuthRedirect: true }),
 };
 
+// ─── User Management API ──────────────────────────────────────────────────────
+export const userAPI = {
+  getAll: () => api.get('/users', { requiresAuthRedirect: true }),
+  delete: (id) => api.delete(`/users/${id}`, { requiresAuthRedirect: true }),
+};
+
 export default api;
