@@ -337,7 +337,6 @@ export function PlayerProvider({ children }) {
       setCurrentTime(0);
       setDuration(0);
       audio.src = resolveStreamUrl(song);
-      audio.load();
       audio
         .play()
         .then(() => setIsPlaying(true))
@@ -405,7 +404,6 @@ export function PlayerProvider({ children }) {
     setCurrentTime(0);
     setDuration(0);
     audio.src = resolveStreamUrl(nextSong);
-    audio.load();
     audio.play().catch(console.error);
   }, [audio, queue, queueIndex, shuffle, repeat, resolveStreamUrl]);
 
@@ -429,7 +427,6 @@ export function PlayerProvider({ children }) {
     setCurrentTime(0);
     setDuration(0);
     audio.src = resolveStreamUrl(prevSong);
-    audio.load();
     audio.play().catch(console.error);
   }, [audio, queue, queueIndex, repeat, resolveStreamUrl]);
 
