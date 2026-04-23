@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Op } = require('sequelize');
-const { sequelize, Song, User, RecentlyPlayed } = require('../models');
+const { sequelize, Song, User, RecentlyPlayed, Playlist } = require('../models');
 
 exports.uploadSong = async (req, res) => {
   const audioFiles = Array.isArray(req.files?.audio) ? req.files.audio : [];
@@ -13,8 +13,6 @@ exports.uploadSong = async (req, res) => {
     if (!audioFiles.length) {
       return res.status(400).json({ success: false, message: 'At least one MP3 audio file is required.' });
     }
-
-
 
     // Preserve manual title/artist/album/genre overrides for single-file uploads.
     const manualMetadata = audioFiles.length === 1
@@ -32,6 +30,7 @@ exports.uploadSong = async (req, res) => {
       };
 
     const createdSongIds = [];
+    const createdSongObjects = [];
 
     await sequelize.transaction(async (transaction) => {
       for (const audioFile of audioFiles) {
@@ -49,6 +48,25 @@ exports.uploadSong = async (req, res) => {
         const payload = await buildSongPayload(audioFile, manualMetadata, coverPath, req.user.id);
         const song = await Song.create(payload, { transaction });
         createdSongIds.push(song.id);
+        createdSongObjects.push(song);
+      }
+
+      // Create a playlist for these uploads if the user is authenticated
+      if (req.user && createdSongIds.length > 0) {
+        const dateStr = new Date().toLocaleDateString();
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const playlistName = `Upload — ${dateStr} ${timeStr}`;
+        
+        const playlist = await Playlist.create({
+          name: playlistName,
+          description: `Automatic playlist for songs uploaded on ${dateStr} at ${timeStr}.`,
+          ownerId: req.user.id,
+          isPublic: false,
+        }, { transaction });
+
+        // Add all created songs to the playlist
+        // Note: belongsToMany associations add a 'addSongs' (or similar) method
+        await playlist.addSongs(createdSongObjects, { transaction });
       }
     });
     uploadCommitted = true;
@@ -69,8 +87,8 @@ exports.uploadSong = async (req, res) => {
       .map(song => formatSong(song.toJSON(), req));
 
     const message = formattedSongs.length === 1
-      ? 'Song uploaded successfully.'
-      : `${formattedSongs.length} songs uploaded successfully.`;
+      ? 'Song uploaded successfully and added to your new playlist.'
+      : `${formattedSongs.length} songs uploaded successfully and added to your new playlist.`;
 
     const response = {
       success: true,
