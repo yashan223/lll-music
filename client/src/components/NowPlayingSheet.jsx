@@ -175,13 +175,13 @@ export default function NowPlayingSheet({ open, onClose }) {
             : 'translateY(100%)',
           transition: dragOffset > 0 ? 'none' : 'transform 0.4s cubic-bezier(0.32,0.72,0,1)',
         }}
-        className="fixed inset-x-0 bottom-0 z-50 md:hidden flex flex-col overflow-hidden rounded-t-3xl"
+        className="fixed inset-0 z-[100] md:hidden flex flex-col overflow-hidden bg-[hsl(var(--background))]"
         aria-modal="true"
         role="dialog"
         aria-label="Now Playing"
       >
         {/* Blurred artwork background */}
-        <div className="absolute inset-0 overflow-hidden rounded-t-3xl">
+        <div className="absolute inset-0 overflow-hidden">
           {currentSong.coverUrl ? (
             <img
               src={currentSong.coverUrl}
@@ -201,7 +201,7 @@ export default function NowPlayingSheet({ open, onClose }) {
         </div>
 
         {/* Content */}
-        <div className="relative flex flex-col h-full max-h-[95dvh] px-6 pt-3 pb-10 gap-5 overflow-y-auto">
+        <div className="relative flex flex-col h-full w-full px-6 pt-12 pb-10 gap-6 overflow-y-auto">
 
           {/* Drag handle + close */}
           <div className="flex flex-col items-center gap-3">
