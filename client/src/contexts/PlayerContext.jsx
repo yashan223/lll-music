@@ -246,14 +246,23 @@ export function PlayerProvider({ children }) {
       return;
     }
 
-    const artwork = song.coverUrl
+    let coverAbsoluteUrl = null;
+    if (song.coverUrl) {
+      try {
+        coverAbsoluteUrl = new URL(song.coverUrl, window.location.origin).toString();
+      } catch {
+        coverAbsoluteUrl = song.coverUrl;
+      }
+    }
+
+    const artwork = coverAbsoluteUrl
       ? [
-          { src: song.coverUrl, sizes: '96x96', type: 'image/jpeg' },
-          { src: song.coverUrl, sizes: '128x128', type: 'image/jpeg' },
-          { src: song.coverUrl, sizes: '192x192', type: 'image/jpeg' },
-          { src: song.coverUrl, sizes: '256x256', type: 'image/jpeg' },
-          { src: song.coverUrl, sizes: '384x384', type: 'image/jpeg' },
-          { src: song.coverUrl, sizes: '512x512', type: 'image/jpeg' },
+          { src: coverAbsoluteUrl, sizes: '96x96', type: 'image/jpeg' },
+          { src: coverAbsoluteUrl, sizes: '128x128', type: 'image/jpeg' },
+          { src: coverAbsoluteUrl, sizes: '192x192', type: 'image/jpeg' },
+          { src: coverAbsoluteUrl, sizes: '256x256', type: 'image/jpeg' },
+          { src: coverAbsoluteUrl, sizes: '384x384', type: 'image/jpeg' },
+          { src: coverAbsoluteUrl, sizes: '512x512', type: 'image/jpeg' },
         ]
       : [];
 
